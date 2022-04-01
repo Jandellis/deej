@@ -158,6 +158,7 @@ func (sio *SerialIO) Start() error {
 			case <-sio.stopChannel:
 				sio.close(namedLogger)
 			case line := <-lineChannel:
+				sio.deej.sessions.refreshSessions(false)
 				sio.handleLine(namedLogger, line)
 
 				levels := sio.GetLevels()
