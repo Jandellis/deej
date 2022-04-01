@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -67,6 +68,45 @@ func NewSerialIO(deej *Deej, logger *zap.SugaredLogger) (*SerialIO, error) {
 	return sio, nil
 }
 
+func (sio *SerialIO) GetLevels() []float64 {
+	levels := make([]float64, sio.lastKnownNumSliders)
+	for i := 0; i < sio.lastKnownNumSliders; i++ {
+		targets, ok := sio.deej.config.SliderMapping.get(i)
+
+		if ok {
+			// for each possible target for this slider...
+			for _, target := range targets {
+				// resolve the target name by cleaning it up and applying any special transformations.
+				// depending on the transformation applied, this can result in more than one target name
+				resolvedTargets := sio.deej.sessions.resolveTarget(target)
+
+				// for each resolved target...
+				for _, resolvedTarget := range resolvedTargets {
+
+					// check the map for matching sessions
+					sessions, ok := sio.deej.sessions.get(resolvedTarget)
+
+					// no sessions matching this target - move on
+					if !ok {
+						continue
+					}
+
+					// iterate all matching sessions and adjust the volume of each one
+					for _, session := range sessions {
+						// sio.logger.Infow("Sound Level", "slider", i, "name", target, "level", session.GetAudioLevel())
+
+						levels[i] = math.Max(levels[i], float64(session.GetAudioLevel()))
+					}
+				}
+			}
+
+		}
+
+	}
+	// sio.logger.Infow("Sound Levels", "levels", levels)
+	return levels
+}
+
 // Start attempts to connect to our arduino chip
 func (sio *SerialIO) Start() error {
 
@@ -122,6 +162,12 @@ func (sio *SerialIO) Start() error {
 				sio.close(namedLogger)
 			case line := <-lineChannel:
 				sio.handleLine(namedLogger, line)
+				levels := sio.GetLevels()
+				levelsString := strconv.Itoa(int(levels[0] * 100))
+				for i := 1; i < len(levels); i++ {
+					levelsString += "|" + strconv.Itoa(int(levels[i]*100))
+				}
+				sio.WriteLine(namedLogger, levelsString)
 			}
 		}
 	}()
