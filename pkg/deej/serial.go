@@ -69,13 +69,11 @@ func NewSerialIO(deej *Deej, logger *zap.SugaredLogger) (*SerialIO, error) {
 }
 
 func (sio *SerialIO) GetLevels() []float64 {
-	levels := make([]float64, sio.lastKnownNumSliders)
-	for i := 0; i < sio.lastKnownNumSliders; i++ {
-		targets, ok := sio.deej.config.SliderMapping.get(i)
-
-		if ok {
-			// for each possible target for this slider...
+	levels := make([]float64, sio.deej.config.SliderMapping.GetMaxSliderID()+1)
+	sio.deej.config.SliderMapping.iterate(
+		func(sliderIdx int, targets []string) {
 			for _, target := range targets {
+
 				// resolve the target name by cleaning it up and applying any special transformations.
 				// depending on the transformation applied, this can result in more than one target name
 				resolvedTargets := sio.deej.sessions.resolveTarget(target)
@@ -95,14 +93,13 @@ func (sio *SerialIO) GetLevels() []float64 {
 					for _, session := range sessions {
 						// sio.logger.Infow("Sound Level", "slider", i, "name", target, "level", session.GetAudioLevel())
 
-						levels[i] = math.Max(levels[i], float64(session.GetAudioLevel()))
+						levels[sliderIdx] = math.Max(levels[sliderIdx], float64(session.GetAudioLevel()))
 					}
 				}
+
 			}
 
-		}
-
-	}
+		})
 	// sio.logger.Infow("Sound Levels", "levels", levels)
 	return levels
 }

@@ -76,6 +76,22 @@ func (m *sliderMap) set(key int, value []string) {
 	m.m[key] = value
 }
 
+func (m *sliderMap) GetMaxSliderID() int {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	maxID := 0
+
+	for idx, _ := range m.m {
+		if idx > maxID {
+			maxID = idx
+		}
+
+	}
+
+	return maxID
+}
+
 func (m *sliderMap) String() string {
 	m.lock.Lock()
 	defer m.lock.Unlock()
