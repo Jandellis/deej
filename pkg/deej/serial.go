@@ -228,6 +228,18 @@ func (sio *SerialIO) readLine(logger *zap.SugaredLogger, reader *bufio.Reader) c
 	return ch
 }
 
+func (sio *SerialIO) WriteLine(logger *zap.SugaredLogger, line string) {
+	_, err := sio.conn.Write([]byte(line))
+	if err != nil {
+		return
+	}
+	_, err = sio.conn.Write([]byte("\n"))
+
+	if err != nil {
+		return
+	}
+}
+
 func (sio *SerialIO) handleLine(logger *zap.SugaredLogger, line string) {
 
 	// this function receives an unsanitized line which is guaranteed to end with LF,
