@@ -176,6 +176,8 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJ
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/moutend/go-wca v0.1.2-0.20190422112502-0fa027b3d89a h1:Wj4QVobenlh7mW3g4L0meqGHvJtJ5PijTvGoX4vxCiw=
 github.com/moutend/go-wca v0.1.2-0.20190422112502-0fa027b3d89a/go.mod h1:tOejf27SfSMa+8LuMhPE0bdaFNnoxlmMGvo/VwAWi7Q=
+github.com/moutend/go-wca v0.2.0 h1:AEzY6ltC5zPCldKyMYdyXv3TaLqwxSW1TIradqNqRpU=
+github.com/moutend/go-wca v0.2.0/go.mod h1:L/ka++dPvkHYz0UuQ/PIQ3aTuecoXOIM1RSAesh6RYU=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d h1:VhgPp6v9qf9Agr/56bj7Y/xa04UccTW04VP0Qed4vnQ=
 github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d/go.mod h1:YUTz3bUH2ZwIWBy3CJBeOBEugqcmXREj14T+iG/4k4U=
