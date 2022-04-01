@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	wca "github.com/DarkMetalMouse/go-wca/pkg/wca"
 	ole "github.com/go-ole/go-ole"
 	ps "github.com/mitchellh/go-ps"
-	wca "github.com/moutend/go-wca/pkg/wca"
 	"go.uber.org/zap"
 )
 
@@ -20,8 +20,9 @@ type wcaSession struct {
 	pid         uint32
 	processName string
 
-	control *wca.IAudioSessionControl2
-	volume  *wca.ISimpleAudioVolume
+	control    *wca.IAudioSessionControl2
+	volume     *wca.ISimpleAudioVolume
+	audioLevel *wca.IAudioMeterInformation
 
 	eventCtx *ole.GUID
 }
@@ -40,15 +41,17 @@ func newWCASession(
 	logger *zap.SugaredLogger,
 	control *wca.IAudioSessionControl2,
 	volume *wca.ISimpleAudioVolume,
+	audioLevel *wca.IAudioMeterInformation,
 	pid uint32,
 	eventCtx *ole.GUID,
 ) (*wcaSession, error) {
 
 	s := &wcaSession{
-		control:  control,
-		volume:   volume,
-		pid:      pid,
-		eventCtx: eventCtx,
+		control:    control,
+		volume:     volume,
+		audioLevel: audioLevel,
+		pid:        pid,
+		eventCtx:   eventCtx,
 	}
 
 	// special treatment for system sounds session
@@ -177,6 +180,17 @@ func (s *wcaSession) SetMute(mute bool) error {
 	return nil
 }
 
+func (s *wcaSession) GetAudioLevel() float32 {
+	var level float32
+
+	if err := s.audioLevel.GetPeakValue(&level); err != nil {
+		s.logger.Warnw("Failed to get session audio level", "error", err)
+	}
+
+	return level
+
+}
+
 func (s *wcaSession) Release() {
 	s.logger.Debug("Releasing audio session")
 
@@ -242,6 +256,10 @@ func (s *masterSession) SetMute(mute bool) error {
 	s.logger.Debugw("Setting session mute", "to", fmt.Sprintf("%t", mute))
 
 	return nil
+}
+
+func (s *masterSession) GetAudioLevel() float32 {
+	return 0.0
 }
 
 func (s *masterSession) Release() {

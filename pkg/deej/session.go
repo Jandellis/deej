@@ -15,6 +15,8 @@ type Session interface {
 	GetMute() bool
 	SetMute(m bool) error
 
+	GetAudioLevel() float32
+
 	Key() string
 	Release()
 }

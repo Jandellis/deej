@@ -7,8 +7,8 @@ import (
 	"time"
 	"unsafe"
 
+	wca "github.com/DarkMetalMouse/go-wca/pkg/wca"
 	ole "github.com/go-ole/go-ole"
-	wca "github.com/moutend/go-wca/pkg/wca"
 	"go.uber.org/zap"
 )
 
@@ -478,8 +478,21 @@ func (sf *wcaSessionFinder) enumerateAndAddProcessSessions(
 		// make it useful, again
 		simpleAudioVolume := (*wca.ISimpleAudioVolume)(unsafe.Pointer(dispatch))
 
+		// get its ISimpleAudioVolume
+		dispatch, err = audioSessionControl2.QueryInterface(wca.IID_IAudioMeterInformation)
+		if err != nil {
+			sf.logger.Warnw("Failed to query session's IAudioMeterInformation",
+				"error", err,
+				"sessionIdx", sessionIdx)
+
+			return fmt.Errorf("query session %d IAudioMeterInformation: %w", sessionIdx, err)
+		}
+
+		// make it useful, again
+		audioMeterInformation := (*wca.IAudioMeterInformation)(unsafe.Pointer(dispatch))
+
 		// create the deej session object
-		newSession, err := newWCASession(sf.sessionLogger, audioSessionControl2, simpleAudioVolume, pid, sf.eventCtx)
+		newSession, err := newWCASession(sf.sessionLogger, audioSessionControl2, simpleAudioVolume, audioMeterInformation, pid, sf.eventCtx)
 		if err != nil {
 
 			// this could just mean this process is already closed by now, and the session will be cleaned up later by the OS
@@ -531,7 +544,4 @@ func (sf *wcaSessionFinder) defaultDeviceChangedCallback(
 	}
 
 	return nil
-}
-func (sf *wcaSessionFinder) noopCallback() (hResult uintptr) {
-	return
 }
