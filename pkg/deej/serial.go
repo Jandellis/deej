@@ -162,12 +162,16 @@ func (sio *SerialIO) Start() error {
 				sio.close(namedLogger)
 			case line := <-lineChannel:
 				sio.handleLine(namedLogger, line)
+
 				levels := sio.GetLevels()
-				levelsString := strconv.Itoa(int(levels[0] * 100))
-				for i := 1; i < len(levels); i++ {
-					levelsString += "|" + strconv.Itoa(int(levels[i]*100))
+				if len(levels) > 0 {
+					levelsString := strconv.Itoa(int(levels[0] * 100))
+					for i := 1; i < len(levels); i++ {
+						levelsString += "|" + strconv.Itoa(int(levels[i]*100))
+					}
+					sio.WriteLine(namedLogger, levelsString)
 				}
-				sio.WriteLine(namedLogger, levelsString)
+
 			}
 		}
 	}()
