@@ -44,7 +44,7 @@ type SliderMoveEvent struct {
 	MuteValue    bool
 }
 
-var expectedLinePattern = regexp.MustCompile(`^\d{1,4},\d(\|\d{1,4},\d)*\r\n$`)
+var expectedLinePattern = regexp.MustCompile(`^\d{1,4}(,\d)?(\|\d{1,4}(,\d)?)*\r\n$`)
 
 // NewSerialIO creates a SerialIO instance that uses the provided deej
 // instance's connection info to establish communications with the arduino chip
@@ -327,7 +327,12 @@ func (sio *SerialIO) handleLine(logger *zap.SugaredLogger, line string) {
 
 		// convert string values to integers ("1023" -> 1023)
 		number, _ := strconv.Atoi(splitValue[0])
-		mute, _ := strconv.Atoi(splitValue[1])
+		var mute int
+		if len(splitValue) == 2 {
+			mute, _ = strconv.Atoi(splitValue[1])
+		} else {
+			mute = 0
+		}
 
 		// check if mute is not 0 or 1
 		if mute > 1 || mute < 0 {
