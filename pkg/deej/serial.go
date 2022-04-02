@@ -104,6 +104,17 @@ func (sio *SerialIO) GetLevels() []float64 {
 	return levels
 }
 
+func (sio *SerialIO) WriteLevels(logger *zap.SugaredLogger) {
+	levels := sio.GetLevels()
+	if len(levels) > 0 {
+		levelsString := strconv.Itoa(int(levels[0] * 100))
+		for i := 1; i < len(levels); i++ {
+			levelsString += "|" + strconv.Itoa(int(levels[i]*100))
+		}
+		sio.WriteLine(sio.logger, levelsString)
+	}
+}
+
 // Start attempts to connect to our arduino chip
 func (sio *SerialIO) Start() error {
 
@@ -153,6 +164,8 @@ func (sio *SerialIO) Start() error {
 		connReader := bufio.NewReader(sio.conn)
 		lineChannel := sio.readLine(namedLogger, connReader)
 
+		sio.WriteLevels(namedLogger) // Wakeup incase device uses blocking read from serial
+
 		for {
 			select {
 			case <-sio.stopChannel:
@@ -160,16 +173,7 @@ func (sio *SerialIO) Start() error {
 			case line := <-lineChannel:
 				sio.deej.sessions.refreshSessions(false)
 				sio.handleLine(namedLogger, line)
-
-				levels := sio.GetLevels()
-				if len(levels) > 0 {
-					levelsString := strconv.Itoa(int(levels[0] * 100))
-					for i := 1; i < len(levels); i++ {
-						levelsString += "|" + strconv.Itoa(int(levels[i]*100))
-					}
-					sio.WriteLine(namedLogger, levelsString)
-				}
-
+				sio.WriteLevels(namedLogger)
 			}
 		}
 	}()
@@ -285,6 +289,9 @@ func (sio *SerialIO) WriteLine(logger *zap.SugaredLogger, line string) {
 
 	if err != nil {
 		return
+	}
+	if sio.deej.Verbose() {
+		logger.Debugw("Wrote new line", "line", line)
 	}
 }
 
