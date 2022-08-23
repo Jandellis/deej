@@ -227,8 +227,15 @@ func (sf *wcaSessionFinder) getMasterSession(mmDevice *wca.IMMDevice, key string
 		return nil, fmt.Errorf("activate master session: %w", err)
 	}
 
+	var audioMeterInformation *wca.IAudioMeterInformation
+
+	if err := mmDevice.Activate(wca.IID_IAudioMeterInformation, wca.CLSCTX_ALL, nil, &audioMeterInformation); err != nil {
+		sf.logger.Warnw("Failed to activate AudioMeterInformation for master session", "error", err)
+		return nil, fmt.Errorf("activate master session: %w", err)
+	}
+
 	// create the master session
-	master, err := newMasterSession(sf.sessionLogger, audioEndpointVolume, sf.eventCtx, key, loggerKey)
+	master, err := newMasterSession(sf.sessionLogger, audioEndpointVolume, audioMeterInformation, sf.eventCtx, key, loggerKey)
 	if err != nil {
 		sf.logger.Warnw("Failed to create master session instance", "error", err)
 		return nil, fmt.Errorf("create master session: %w", err)

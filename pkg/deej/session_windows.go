@@ -31,6 +31,7 @@ type masterSession struct {
 	baseSession
 
 	volume *wca.IAudioEndpointVolume
+	audioLevel *wca.IAudioMeterInformation
 
 	eventCtx *ole.GUID
 
@@ -92,6 +93,7 @@ func newWCASession(
 func newMasterSession(
 	logger *zap.SugaredLogger,
 	volume *wca.IAudioEndpointVolume,
+	audioLevel *wca.IAudioMeterInformation,
 	eventCtx *ole.GUID,
 	key string,
 	loggerKey string,
@@ -99,6 +101,7 @@ func newMasterSession(
 
 	s := &masterSession{
 		volume:   volume,
+		audioLevel: audioLevel,
 		eventCtx: eventCtx,
 	}
 
@@ -259,7 +262,13 @@ func (s *masterSession) SetMute(mute bool) error {
 }
 
 func (s *masterSession) GetAudioLevel() float32 {
-	return 0.0
+	var level float32
+
+	if err := s.audioLevel.GetPeakValue(&level); err != nil {
+		s.logger.Warnw("Failed to get session audio level", "error", err)
+	}
+
+	return level
 }
 
 func (s *masterSession) Release() {
