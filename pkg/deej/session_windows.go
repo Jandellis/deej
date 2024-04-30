@@ -4,15 +4,19 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	wca "github.com/DarkMetalMouse/go-wca/pkg/wca"
 	ole "github.com/go-ole/go-ole"
+	"github.com/micmonay/keybd_event"
 	ps "github.com/mitchellh/go-ps"
 	"go.uber.org/zap"
 )
 
 var errNoSuchProcess = errors.New("No such process")
 var errRefreshSessions = errors.New("Trigger session refresh")
+var kb keybd_event.KeyBonding
+var lastTime = time.Now()
 
 type wcaSession struct {
 	baseSession
@@ -30,7 +34,7 @@ type wcaSession struct {
 type masterSession struct {
 	baseSession
 
-	volume *wca.IAudioEndpointVolume
+	volume     *wca.IAudioEndpointVolume
 	audioLevel *wca.IAudioMeterInformation
 
 	eventCtx *ole.GUID
@@ -98,11 +102,16 @@ func newMasterSession(
 	key string,
 	loggerKey string,
 ) (*masterSession, error) {
+	var err error
+	kb, err = keybd_event.NewKeyBonding()
+	if err != nil {
+		panic(err)
+	}
 
 	s := &masterSession{
-		volume:   volume,
+		volume:     volume,
 		audioLevel: audioLevel,
-		eventCtx: eventCtx,
+		eventCtx:   eventCtx,
 	}
 
 	s.logger = logger.Named(loggerKey)
@@ -227,6 +236,15 @@ func (s *masterSession) SetVolume(v float32) error {
 			"volume", v)
 
 		return fmt.Errorf("adjust session volume: %w", err)
+	}
+	if time.Since(lastTime) > 1*time.Second {
+		kb.SetKeys(keybd_event.VK_VOLUME_DOWN, keybd_event.VK_VOLUME_UP)
+		// Press the selected keys
+		err := kb.Launching()
+		if err != nil {
+			panic(err)
+		}
+		lastTime = time.Now()
 	}
 
 	s.logger.Debugw("Adjusting session volume", "to", fmt.Sprintf("%.2f", v))

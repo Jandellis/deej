@@ -91,9 +91,13 @@ func (sio *SerialIO) GetLevels() []float64 {
 
 					// iterate all matching sessions and adjust the volume of each one
 					for _, session := range sessions {
-						// sio.logger.Infow("Sound Level", "slider", i, "name", target, "level", session.GetAudioLevel())
 
-						levels[sliderIdx] = math.Max(levels[sliderIdx], float64(session.GetAudioLevel()))
+						// sio.logger.Infow("Sound Level", "key", session.Key(), "name", target, "level", session.GetAudioLevel())
+						//signalrbg puts out audio even though it shouldnt. So just ingore it
+						if session.Key() != "signalrgb.exe" {
+							levels[sliderIdx] = math.Max(levels[sliderIdx], float64(session.GetAudioLevel()))
+						}
+
 					}
 				}
 
@@ -111,6 +115,7 @@ func (sio *SerialIO) WriteLevels(logger *zap.SugaredLogger) {
 		for i := 1; i < len(levels); i++ {
 			levelsString += "|" + strconv.Itoa(int(levels[i]*100))
 		}
+		levelsString += "|"
 		sio.WriteLine(sio.logger, levelsString)
 	}
 }

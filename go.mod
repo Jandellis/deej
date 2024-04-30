@@ -14,6 +14,7 @@ require (
 	github.com/jfreymuth/pulse v0.0.0-20200608153616-84b2d752b9d4
 	github.com/lxn/walk v0.0.0-20191128110447-55ccb3a9f5c1 // indirect
 	github.com/lxn/win v0.0.0-20191128105842-2da648fda5b4
+	github.com/micmonay/keybd_event v1.1.2
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/spf13/viper v1.7.1
 	github.com/thoas/go-funk v0.7.0
