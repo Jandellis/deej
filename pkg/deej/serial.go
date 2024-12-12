@@ -111,7 +111,7 @@ func (sio *SerialIO) GetLevels() []float64 {
 func (sio *SerialIO) WriteLevels(logger *zap.SugaredLogger) {
 	levels := sio.GetLevels()
 	if len(levels) > 0 {
-		levelsString := strconv.Itoa(int(levels[0] * 100))
+		levelsString := "-" + strconv.Itoa(int(levels[0]*100))
 		for i := 1; i < len(levels); i++ {
 			levelsString += "|" + strconv.Itoa(int(levels[i]*100))
 		}
@@ -132,7 +132,7 @@ func (sio *SerialIO) Start() error {
 	// set minimum read size according to platform (0 for windows, 1 for linux)
 	// this prevents a rare bug on windows where serial reads get congested,
 	// resulting in significant lag
-	minimumReadSize := 0
+	minimumReadSize := 1
 	if util.Linux() {
 		minimumReadSize = 1
 	}
